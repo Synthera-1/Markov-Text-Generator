@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Markov Chain Text Predictor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #fafafa;
+      max-width: 700px;
+    }
+    textarea, input[type="text"], input[type="number"] {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    input[type="number"] {
+      width: 80px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 0.6rem 1.2rem;
+      margin-top: 0.5rem;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .output {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 6px;
+      min-height: 60px;
+      white-space: pre-wrap;
+      border: 1px solid #ddd;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Advanced Markov Chain Text Predictor</h1>
+
+<div class="section">
+  <h3>Train the model</h3>
+  <label for="trainText">Training Text</label>
+  <textarea id="trainText" placeholder="Paste text here to train the model..."></textarea>
+  
+  <label for="trainN">N-gram size (prefix length, 1-10)</label>
+  <input type="number" id="trainN" min="1" max="10" value="3" />
+  
+  <button onclick="trainModel()">Train Model</button>
+  <div id="trainStatus"></div>
+</div>
+
+<div class="section">
+  <h3>Predict sentence completion</h3>
+  <label for="startText">Start Text (enter at least N words)</label>
+  <input type="text" id="startText" placeholder="Enter at least N words..." />
+  
+  <label for="predictN">N-gram size (prefix length, 1-10)</label>
+  <input type="number" id="predictN" min="1" max="10" value="3" />
+  
+  <button onclick="predictText()">Finish Sentence</button>
+  
+  <div class="output" id="outputText"></div>
+</div>
+
+<script>
+async function trainModel() {
+  const text = document.getElementById('trainText').value.trim();
+  let n = parseInt(document.getElementById('trainN').value);
+  if (!text) {
+    alert('Please enter some text to train the model.');
+    return;
+  }
+  if (isNaN(n) || n < 1 || n > 10) {
+    alert('Please enter a valid n between 1 and 10.');
+    return;
+  }
+  document.getElementById('trainStatus').textContent = 'Training...';
+  try {
+    const resp = await fetch('/train', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, n})
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+      document.getElementById('trainStatus').textContent = `Training complete with n=${n}!`;
+    } else {
+      document.getElementById('trainStatus').textContent = `Training failed: ${data.message || 'Unknown error'}`;
+    }
+  } catch(e) {
+    document.getElementById('trainStatus').textContent = 'Error during training.';
+  }
+}
+
+async function predictText() {
+  const startText = document.getElementById('startText').value.trim();
+  let n = parseInt(document.getElementById('predictN').value);
+  if (isNaN(n) || n < 1 || n > 10) {
+    alert('Please enter a valid n between 1 and 10.');
+    return;
+  }
+  if (startText.split(' ').length < n) {
+    alert(`Please enter at least ${n} words to start.`);
+    return;
+  }
+  document.getElementById('outputText').textContent = 'Generating...';
+  try {
+    const resp = await fetch('/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({start_text: startText, n})
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+      document.getElementById('outputText').textContent = data.generated_text;
+    } else {
+      document.getElementById('outputText').textContent = data.message || 'Error generating text.';
+    }
+  } catch(e) {
+    document.getElementById('outputText').textContent = 'Error during generation.';
+  }
+}
+</script>
+
+</body>
+</html>
