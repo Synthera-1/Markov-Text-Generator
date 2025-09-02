@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Markov Text Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 2rem; }
+        textarea { resize: vertical; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Markov Chain Text Generator</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="input_text" class="form-label">Enter Training Text</label>
+                <textarea name="input_text" class="form-control" rows="6" required></textarea>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="order" class="form-label">Chain Order</label>
+                    <select name="order" class="form-select">
+                        <option value="1">1 (Unigram)</option>
+                        <option value="2" selected>2 (Bigram)</option>
+                        <option value="3">3 (Trigram)</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="length" class="form-label">Output Length</label>
+                    <input type="number" name="length" class="form-control" value="50" min="5" max="500">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Text</button>
+        </form>
+
+        {% if generated_text %}
+        <hr>
+        <h4>Generated Text:</h4>
+        <div class="alert alert-secondary" role="alert">
+            {{ generated_text }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
